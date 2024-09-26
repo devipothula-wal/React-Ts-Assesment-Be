@@ -6,11 +6,13 @@ const {
   updateTransaction,
 } = require("../controllers/transactionController");
 const router = express.Router();
+const { authMiddleware } = require('../middlewares/authrization');
+const _ = require('lodash')
 
 // get all transactions
-router.get("/:userId", async (req, res,next) => {
+router.get("/", authMiddleware,  async (req, res,next) => {
   try {
-    const result = await getTransactions(req.params.userId);
+    const result = await getTransactions(_.get(req.user, 'userId'));
     res.status(200).send({ success: true, data: result });
   } catch (err) {
 
@@ -22,7 +24,7 @@ router.get("/:userId", async (req, res,next) => {
 });
 
 // create new transaction
-router.post("/", async (req,res,next) => {
+router.post("/", authMiddleware,  async (req,res,next) => {
   try {
     const result = await createTransaction(req.body);
     res.status(200).send({ success: true, data: result });
@@ -36,7 +38,7 @@ router.post("/", async (req,res,next) => {
 });
 
 // create new transaction
-router.put("/:id", async (req, res,next) => {
+router.put("/:id", authMiddleware, async (req, res,next) => {
   try {
     const { id } = req.params;
     const result = await updateTransaction(id, req.body);
@@ -51,7 +53,7 @@ router.put("/:id", async (req, res,next) => {
 });
 
 // delete existing transaction
-router.delete("/:id", async (req, res,next) => {
+router.delete("/:id", authMiddleware, async (req, res,next) => {
   try {
     const result = await deleteTransaction(req.params.id);
     res.status(200).send({ success: true, data: result });

@@ -1,5 +1,9 @@
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
+const { json } = require("express");
+const jwt = require("jsonwebtoken");
+const _ = require("lodash");
+require("dotenv").config();
 
 exports.createUser = async (userObj) => {
   // Hash the password before saving the user
@@ -16,7 +20,7 @@ exports.createUser = async (userObj) => {
 
 exports.login = async (userObj) => {
   // Find the user by email
-  const user = await User.findOne({ email: userObj.email });
+  let user = await User.findOne({ email: userObj.email });
 
   if (!user) {
     throw new Error("Invalid Username or Password");
@@ -29,6 +33,17 @@ exports.login = async (userObj) => {
     throw new Error("Invalid Username or Password");
   }
 
+  //generate jwt token
+  const token = jwt.sign(
+    {
+      email: _.get(user, "email"),
+      userId: _.get(user, "_id"),
+    },
+    process.env.JWT_SECRET_KEY,
+    { expiresIn: '1h' } 
+  );
+ 
   // Password is valid, return the user
-  return user;
+  const { email, password, _id } = user;
+  return {email,password,_id, token};
 };
